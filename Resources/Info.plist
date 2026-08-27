@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>RALBE OSX Toolbox</string>
+    <key>CFBundleDisplayName</key>
+    <string>RALBE OSX Toolbox</string>
+    <key>CFBundleIdentifier</key>
+    <string>local.ralbeosxtoolbox</string>
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleExecutable</key>
+    <string>RALBEOSXToolbox</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>Local build, personal use.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Used to detect the current WiFi network name for Caffeine Injection automation triggers.</string>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Used to detect connected Bluetooth devices for Caffeine Injection automation triggers.</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>Used to list and manage Login Items via System Events for the Startup &amp; Login Manager tool.</string>
+</dict>
+</plist>

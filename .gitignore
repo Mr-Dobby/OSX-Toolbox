@@ -1,0 +1,9 @@
+# Swift Package Manager build output (object files, module cache, index data)
+.build/
+.swiftpm/
+
+# App bundle produced by install.command - rebuilt on demand, not source
+/RALBE OSX Toolbox.app/
+
+# macOS
+.DS_Store
