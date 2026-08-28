@@ -19,6 +19,7 @@ enum ToolboxSection: String, CaseIterable, Identifiable, Hashable {
     case fileFinder = "Quick File Finder"
     case screenshotToolbox = "Screenshot Toolbox"
     case fileConversion = "File Conversion"
+    case imageEditor = "Image Editor"
     case webDashboard = "Web Dashboard"
 
     var id: String { rawValue }
@@ -28,7 +29,7 @@ enum ToolboxSection: String, CaseIterable, Identifiable, Hashable {
         case .permissionsCenter: return "Setup"
         case .caffeineInjection, .autoclicker, .appCleaner, .appUpdater, .appInstaller: return "Core Tools"
         case .diskAnalyzer, .startupManager, .permissionsInspector, .networkToolbox, .quickUtilities, .processMonitor: return "System"
-        case .clipboardManager, .windowManager, .fileFinder, .screenshotToolbox, .fileConversion: return "Productivity"
+        case .clipboardManager, .windowManager, .fileFinder, .screenshotToolbox, .fileConversion, .imageEditor: return "Productivity"
         case .webDashboard: return "Dashboard"
         }
     }
@@ -57,6 +58,7 @@ enum ToolboxSection: String, CaseIterable, Identifiable, Hashable {
         case .fileFinder: return "magnifyingglass"
         case .screenshotToolbox: return "camera.viewfinder"
         case .fileConversion: return "arrow.triangle.2.circlepath.doc.on.clipboard"
+        case .imageEditor: return "wand.and.stars"
         case .webDashboard: return "chart.xyaxis.line"
         }
     }

@@ -8,9 +8,10 @@ struct StartupView: View {
             HStack {
                 Text("\(manager.items.count) things can start automatically").font(.title2).bold()
                 Spacer()
+                Button("Add App to Login Items…") { manager.pickAppToAddAsLoginItem() }
                 Button("Refresh") { manager.refresh() }
             }
-            Text("System-scoped items usually need admin rights to disable; the toggle will silently no-op without them.")
+            Text("System-scoped items may prompt for your admin password to disable/remove; Login Items never need it.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -25,6 +26,8 @@ struct StartupView: View {
                         .disabled(item.scope == "Login Item")
                     Toggle("", isOn: Binding(get: { item.enabled }, set: { _ in manager.toggle(item) }))
                         .labelsHidden()
+                        .disabled(item.scope == "Login Item")
+                    Button("Remove", role: .destructive) { manager.remove(item) }
                 }
             }
         }

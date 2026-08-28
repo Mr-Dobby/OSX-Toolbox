@@ -23,6 +23,7 @@ struct MainDashboardView: View {
     @ObservedObject var fileFinder: QuickFileFinderManager
     @ObservedObject var screenshotToolbox: ScreenshotToolboxManager
     @ObservedObject var fileConversion: FileConversionManager
+    @ObservedObject var imageEditor: ImageEditorManager
     @ObservedObject var webDashboard: WebDashboardManager
 
     var body: some View {
@@ -83,6 +84,8 @@ struct MainDashboardView: View {
             ScreenshotToolboxView(manager: screenshotToolbox)
         case .fileConversion:
             FileConversionView(manager: fileConversion)
+        case .imageEditor:
+            ImageEditorView(manager: imageEditor)
         case .webDashboard:
             WebDashboardView(manager: webDashboard)
         case nil:

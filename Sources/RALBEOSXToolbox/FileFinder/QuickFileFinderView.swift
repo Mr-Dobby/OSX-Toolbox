@@ -8,7 +8,7 @@ struct QuickFileFinderView: View {
             Text("Quick File Finder").font(.title2).bold()
 
             HStack {
-                TextField("Search filenames and file contents…", text: $manager.query, onCommit: { manager.search() })
+                TextField("Search filenames/contents, or a wildcard like *.js or *test*…", text: $manager.query, onCommit: { manager.search() })
                     .textFieldStyle(.roundedBorder)
                 Button("Search") { manager.search() }
                 Picker("Sort", selection: $manager.sortOption) {
@@ -17,6 +17,10 @@ struct QuickFileFinderView: View {
                 .frame(width: 180)
                 Toggle("Large files only (>100MB)", isOn: $manager.largeFilesOnly)
             }
+
+            Text("Use * to match any run of characters and ? for a single character (e.g. *.js for all JS files, *test* for anything with \"test\" in the name) - wildcard searches match filenames only, not file contents.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
             if manager.isSearching { ProgressView("Searching…") }
 

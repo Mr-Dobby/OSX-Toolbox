@@ -22,6 +22,7 @@ struct RALBEOSXToolboxApp: App {
     @StateObject private var fileFinder = QuickFileFinderManager.shared
     @StateObject private var screenshotToolbox = ScreenshotToolboxManager.shared
     @StateObject private var fileConversion = FileConversionManager.shared
+    @StateObject private var imageEditor = ImageEditorManager.shared
     @StateObject private var webDashboard = WebDashboardManager.shared
 
     var body: some Scene {
@@ -45,6 +46,7 @@ struct RALBEOSXToolboxApp: App {
                 fileFinder: fileFinder,
                 screenshotToolbox: screenshotToolbox,
                 fileConversion: fileConversion,
+                imageEditor: imageEditor,
                 webDashboard: webDashboard
             )
         }

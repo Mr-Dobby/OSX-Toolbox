@@ -184,7 +184,7 @@ struct ToolboxMenuBarView: View {
           • Disk Analyzer, Startup & Login Manager, Permissions Inspector,
             Network Toolbox, Quick Utilities, Process Monitor
           • Clipboard Manager, Window Manager, Quick File Finder,
-            Screenshot Toolbox, File Conversion
+            Screenshot Toolbox, File Conversion, Image Editor
           • Web Dashboard - live device stats in your browser (127.0.0.1 only)
 
         First time here? Open "Request Permissions" from the sidebar (under

@@ -71,18 +71,85 @@ final class StartupManager: ObservableObject {
             if item.scope == "Login Item" {
                 let script = "tell application \"System Events\" to delete login item \"\(item.label)\""
                 _ = caffeineShell("/usr/bin/osascript", ["-e", script])
-            } else if item.enabled {
-                _ = caffeineShell("/bin/launchctl", ["unload", item.path])
-                try? fm.moveItem(atPath: item.path, toPath: item.path + ".disabled")
             } else {
+                let dir = (item.path as NSString).deletingLastPathComponent
                 let disabledPath = item.path + ".disabled"
-                if fm.fileExists(atPath: disabledPath) {
-                    try? fm.moveItem(atPath: disabledPath, toPath: item.path)
+                let writable = fm.isWritableFile(atPath: dir)
+                if item.enabled {
+                    if writable {
+                        _ = caffeineShell("/bin/launchctl", ["unload", item.path])
+                        try? fm.moveItem(atPath: item.path, toPath: disabledPath)
+                    } else {
+                        Self.runElevated("launchctl unload \(item.path.shellQuotedForInstall) 2>/dev/null; mv \(item.path.shellQuotedForInstall) \(disabledPath.shellQuotedForInstall)")
+                    }
+                } else {
+                    if writable {
+                        if fm.fileExists(atPath: disabledPath) {
+                            try? fm.moveItem(atPath: disabledPath, toPath: item.path)
+                        }
+                        _ = caffeineShell("/bin/launchctl", ["load", item.path])
+                    } else {
+                        Self.runElevated("mv \(disabledPath.shellQuotedForInstall) \(item.path.shellQuotedForInstall) 2>/dev/null; launchctl load \(item.path.shellQuotedForInstall)")
+                    }
                 }
-                _ = caffeineShell("/bin/launchctl", ["load", item.path])
             }
             Task { @MainActor in self?.refresh() }
         }
+    }
+
+    /// Deletes the item outright rather than just disabling it - a plist's
+    /// ".disabled" sibling is cleaned up too so it can't reappear on a
+    /// future re-enable attempt.
+    func remove(_ item: StartupItem) {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            if item.scope == "Login Item" {
+                let script = "tell application \"System Events\" to delete login item \"\(item.label)\""
+                _ = caffeineShell("/usr/bin/osascript", ["-e", script])
+            } else {
+                let fm = FileManager.default
+                let dir = (item.path as NSString).deletingLastPathComponent
+                let disabledPath = item.path + ".disabled"
+                if fm.isWritableFile(atPath: dir) {
+                    _ = caffeineShell("/bin/launchctl", ["unload", item.path])
+                    try? fm.removeItem(atPath: item.path)
+                    try? fm.removeItem(atPath: disabledPath)
+                } else {
+                    Self.runElevated("launchctl unload \(item.path.shellQuotedForInstall) 2>/dev/null; rm -f \(item.path.shellQuotedForInstall) \(disabledPath.shellQuotedForInstall)")
+                }
+            }
+            Task { @MainActor in self?.refresh() }
+        }
+    }
+
+    /// Lets the user pick any app to add as a GUI Login Item - the same
+    /// mechanism (and the only scriptable one) System Settings > Login
+    /// Items itself uses; adding a custom LaunchAgent plist for an arbitrary
+    /// app would need its own launch command, which we don't know.
+    func pickAppToAddAsLoginItem() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.application]
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        panel.prompt = "Add to Login Items"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        addLoginItem(path: url.path)
+    }
+
+    private func addLoginItem(path: String) {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let escapedPath = path.replacingOccurrences(of: "\"", with: "\\\"")
+            let script = "tell application \"System Events\" to make login item at end with properties {path:\"\(escapedPath)\", hidden:false}"
+            _ = caffeineShell("/usr/bin/osascript", ["-e", script])
+            Task { @MainActor in self?.refresh() }
+        }
+    }
+
+    nonisolated private static func runElevated(_ shellCommand: String) {
+        let script = "do shell script \"\(shellCommand.replacingOccurrences(of: "\"", with: "\\\""))\" with administrator privileges"
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+        process.arguments = ["-e", script]
+        (try? process.run())
+        process.waitUntilExit()
     }
 
     func reveal(_ item: StartupItem) {

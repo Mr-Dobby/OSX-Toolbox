@@ -29,8 +29,20 @@ final class QuickFileFinderManager: NSObject, ObservableObject {
 
         let mq = NSMetadataQuery()
         mq.searchScopes = [NSMetadataQueryUserHomeScope]
-        var predicateFormat = "(kMDItemFSName CONTAINS[cd] %@) OR (kMDItemTextContent CONTAINS[cd] %@)"
-        var args: [Any] = [query, query]
+
+        var predicateFormat: String
+        var args: [Any]
+        if Self.isWildcardPattern(query) {
+            // NSPredicate's LIKE operator natively treats * as "any run of
+            // characters" and ? as "exactly one character" - unlike CONTAINS,
+            // which would match them as literal text. Filename-only, since a
+            // glob pattern doesn't make sense against file contents.
+            predicateFormat = "kMDItemFSName LIKE[cd] %@"
+            args = [query]
+        } else {
+            predicateFormat = "(kMDItemFSName CONTAINS[cd] %@) OR (kMDItemTextContent CONTAINS[cd] %@)"
+            args = [query, query]
+        }
         if largeFilesOnly {
             predicateFormat = "(\(predicateFormat)) AND (kMDItemFSSize > %@)"
             args.append(NSNumber(value: 100 * 1024 * 1024))
@@ -41,6 +53,10 @@ final class QuickFileFinderManager: NSObject, ObservableObject {
         metadataQuery = mq
         isSearching = true
         mq.start()
+    }
+
+    nonisolated private static func isWildcardPattern(_ text: String) -> Bool {
+        text.contains("*") || text.contains("?")
     }
 
     @objc private func queryDidFinish(_ note: Notification) {
