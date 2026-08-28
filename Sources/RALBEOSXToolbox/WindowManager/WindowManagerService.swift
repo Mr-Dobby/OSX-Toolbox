@@ -19,18 +19,52 @@ final class WindowManagerService: ObservableObject {
         var id: String { rawValue }
     }
 
+    /// The last app that was frontmost before RALBE OSX Toolbox itself became
+    /// active. Clicking a placement button in our own window makes US the
+    /// frontmost app, so `NSWorkspace.frontmostApplication` at that point
+    /// would always resolve to our own window - tracking activation
+    /// notifications lets placement act on whatever app the user was
+    /// actually using beforehand, like Rectangle/Magnet do.
+    @Published private(set) var targetAppName: String?
+    private var lastExternalApp: NSRunningApplication?
+    private var isObserving = false
+
     private init() {}
+
+    func start() {
+        guard !isObserving else { return }
+        isObserving = true
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(activeAppChanged(_:)),
+            name: NSWorkspace.didActivateApplicationNotification,
+            object: nil
+        )
+        if let app = NSWorkspace.shared.frontmostApplication, app.processIdentifier != ProcessInfo.processInfo.processIdentifier {
+            lastExternalApp = app
+            targetAppName = app.localizedName
+        }
+    }
+
+    @objc nonisolated private func activeAppChanged(_ note: Notification) {
+        guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+              app.processIdentifier != ProcessInfo.processInfo.processIdentifier else { return }
+        Task { @MainActor in
+            self.lastExternalApp = app
+            self.targetAppName = app.localizedName
+        }
+    }
 
     func apply(_ placement: Placement) {
         guard AccessibilityPermission.isTrusted(promptIfNeeded: true) else { return }
-        guard let window = frontmostWindow(), let screenFrame = NSScreen.main?.visibleFrame else { return }
+        guard let window = targetWindow(), let screenFrame = NSScreen.main?.visibleFrame else { return }
         let frame = self.frame(for: placement, in: screenFrame)
         setFrame(frame, for: window, screenHeight: NSScreen.main!.frame.maxY)
     }
 
     func moveToNextDisplay() {
         guard AccessibilityPermission.isTrusted(promptIfNeeded: true) else { return }
-        guard let window = frontmostWindow() else { return }
+        guard let window = targetWindow() else { return }
         let screens = NSScreen.screens
         guard screens.count > 1, let mainScreen = NSScreen.main else { return }
         let idx = screens.firstIndex(where: { $0 === mainScreen }) ?? 0
@@ -54,8 +88,11 @@ final class WindowManagerService: ObservableObject {
         }
     }
 
-    private func frontmostWindow() -> AXUIElement? {
-        guard let app = NSWorkspace.shared.frontmostApplication else { return nil }
+    /// Resolves the focused window of the last app the user was actually
+    /// using rather than whatever is frontmost right now - see the doc
+    /// comment on `lastExternalApp` above for why that distinction matters.
+    private func targetWindow() -> AXUIElement? {
+        guard let app = lastExternalApp, !app.isTerminated else { return nil }
         let axApp = AXUIElementCreateApplication(app.processIdentifier)
         var value: AnyObject?
         guard AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute as CFString, &value) == .success, let value else { return nil }

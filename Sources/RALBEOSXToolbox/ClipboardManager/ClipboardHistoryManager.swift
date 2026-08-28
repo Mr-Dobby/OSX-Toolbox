@@ -40,6 +40,11 @@ final class ClipboardHistoryManager: ObservableObject {
         return history.filter { $0.text.localizedCaseInsensitiveContains(searchText) }
     }
 
+    /// Pinned entries keep their relative order but surface separately so
+    /// they don't get buried by newer unpinned copies further down the list.
+    var pinnedHistory: [ClipboardEntry] { filteredHistory.filter { $0.pinned } }
+    var unpinnedHistory: [ClipboardEntry] { filteredHistory.filter { !$0.pinned } }
+
     private func pollPasteboard() {
         guard isEnabled else { return }
         let pb = NSPasteboard.general

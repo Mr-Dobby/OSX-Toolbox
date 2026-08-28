@@ -9,6 +9,7 @@ final class ToolboxAppDelegate: NSObject, NSApplicationDelegate {
         QuickUtilitiesManager.shared.start()
         ProcessMonitorManager.shared.start()
         ClipboardHistoryManager.shared.start()
+        WindowManagerService.shared.start()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
