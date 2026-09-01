@@ -154,6 +154,7 @@ else
     fi
 fi
 
+rm -rf "$APP_BUNDLE"
 echo ""
 echo "=================================="
 echo " Done!"
