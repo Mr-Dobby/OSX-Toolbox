@@ -38,6 +38,7 @@ struct ImageEditorView: View {
             if manager.hasImage {
                 Button("Undo") { manager.undo() }.disabled(!manager.canUndo)
                 Button("Redo") { manager.redo() }.disabled(!manager.canRedo)
+                Button("Remove Image", role: .destructive) { manager.removeImage() }
             }
         }
     }
@@ -250,6 +251,15 @@ struct ImageEditorView: View {
                 slider("Exposure", value: $manager.exposure, range: -2...2)
                 slider("Sharpness", value: $manager.sharpness, range: 0...2)
                 slider("Blur", value: $manager.blurAmount, range: 0...50)
+                if manager.adjustmentScope == .selectedArea {
+                    HStack {
+                        ColorPicker("Fill selection with", selection: fillColorBinding)
+                        Button("Fill Selection") { manager.fillSelection() }
+                            .disabled(manager.selectionRect == nil || manager.hasAdjustments)
+                    }
+                    Text(manager.hasAdjustments ? "Apply or reset the slider adjustments before filling the selection." : "Choose a colour to cover only the selected area.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
                 HStack {
                     Button("Apply Adjustments") { manager.applyAdjustments() }
                         .buttonStyle(.borderedProminent)
@@ -258,7 +268,7 @@ struct ImageEditorView: View {
                         .disabled(!manager.hasAdjustments)
                 }
                 if manager.adjustmentScope == .selectedArea {
-                    Text("After you Apply, the selection clears and sliders reset automatically - ready to pick another area right away.")
+                    Text("Apply commits only inside the selection and resets the sliders. The selection stays active so you can apply another operation, or clear/redraw it above.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -339,6 +349,13 @@ struct ImageEditorView: View {
         Binding(
             get: { Color(nsColor: manager.markupColor) },
             set: { manager.markupColor = NSColor($0) }
+        )
+    }
+
+    private var fillColorBinding: Binding<Color> {
+        Binding(
+            get: { Color(nsColor: manager.fillColor) },
+            set: { manager.fillColor = NSColor($0) }
         )
     }
 

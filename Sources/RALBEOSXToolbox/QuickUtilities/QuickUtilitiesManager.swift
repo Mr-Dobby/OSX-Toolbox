@@ -28,6 +28,11 @@ final class QuickUtilitiesManager: ObservableObject {
         RunLoop.main.add(timer!, forMode: .common)
     }
 
+    func stop() {
+        timer?.invalidate()
+        timer = nil
+    }
+
     func refresh() {
         battery = batteryInfo()
         displays = NSScreen.screens.enumerated().map { index, screen in

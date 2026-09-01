@@ -10,8 +10,7 @@ final class AwakeEngine {
 
     func setEngaged(_ engaged: Bool, allowDisplaySleep: Bool, driveAlive: Bool) {
         guard engaged else {
-            process?.terminate()
-            process = nil
+            stop()
             return
         }
 
@@ -30,6 +29,12 @@ final class AwakeEngine {
         } catch {
             print("caffeinate failed: \(error)")
         }
+    }
+
+    func stop() {
+        process?.terminate()
+        process = nil
+        lastFlags = []
     }
 
     private func computeFlags(allowDisplaySleep: Bool, driveAlive: Bool) -> [String] {

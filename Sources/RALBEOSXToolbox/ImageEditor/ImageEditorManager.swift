@@ -110,6 +110,7 @@ final class ImageEditorManager: NSObject, ObservableObject {
     @Published var exposure: Double = 0 { didSet { updatePreview() } }    // -2...2, 0 = neutral
     @Published var sharpness: Double = 0 { didSet { updatePreview() } }   // 0...2, 0 = neutral
     @Published var blurAmount: Double = 0 { didSet { updatePreview() } }  // 0...50 radius, 0 = neutral
+    @Published var fillColor: NSColor = .systemRed
 
     @Published var saveFormat: SaveFormat = .png
     @Published var lastSavedPath: String?
@@ -165,6 +166,30 @@ final class ImageEditorManager: NSObject, ObservableObject {
         lastError = nil
         lastSavedPath = nil
         resetAdjustmentSliders(updatingPreview: false)
+        updateUndoRedoFlags()
+        revision += 1
+    }
+
+    /// Clears the editor session without deleting the source image on disk.
+    func removeImage() {
+        currentImage = nil
+        previewImage = nil
+        sourcePath = nil
+        undoStack.removeAll()
+        redoStack.removeAll()
+        markupElements.removeAll()
+        cropRect = nil
+        selectionRect = nil
+        adjustmentScope = .fullImage
+        mode = .none
+        dragStartPoint = nil
+        dragCurrentPoint = nil
+        penStrokePoints.removeAll()
+        resizeWidthText = ""
+        resizeHeightText = ""
+        resetAdjustmentSliders(updatingPreview: false)
+        lastSavedPath = nil
+        lastError = nil
         updateUndoRedoFlags()
         revision += 1
     }
@@ -336,13 +361,39 @@ final class ImageEditorManager: NSObject, ObservableObject {
         guard let preview = previewImage else { return }
         commit(preview)
         resetAdjustmentSliders(updatingPreview: true)
-        selectionRect = nil
-        mode = .none
     }
 
     func resetAdjustmentSliders(updatingPreview: Bool = true) {
         brightness = 0; contrast = 1; saturation = 1; exposure = 0; sharpness = 0; blurAmount = 0
         if updatingPreview { previewImage = nil }
+    }
+
+    /// Permanently fills the selected rectangle with the chosen colour.
+    /// Selection coordinates are top-left-origin, so the Y value is flipped
+    /// before creating Core Image's bottom-left-origin mask.
+    func fillSelection() {
+        guard let base = currentImage, let rect = selectionRect else { return }
+        let extent = CGRect(x: 0, y: 0, width: base.width, height: base.height)
+        let selectedRect = rect.intersection(extent)
+        guard !selectedRect.isEmpty else { return }
+        guard let ciColor = CIColor(color: fillColor) else { return }
+
+        let ciRect = CGRect(
+            x: selectedRect.minX,
+            y: CGFloat(base.height) - selectedRect.maxY,
+            width: selectedRect.width,
+            height: selectedRect.height
+        )
+        let mask = CIImage(color: .white)
+            .cropped(to: ciRect)
+            .composited(over: CIImage(color: .black).cropped(to: extent))
+        let blend = CIFilter.blendWithMask()
+        blend.inputImage = CIImage(color: ciColor).cropped(to: extent)
+        blend.backgroundImage = CIImage(cgImage: base)
+        blend.maskImage = mask
+        guard let output = blend.outputImage,
+              let filled = ciContext.createCGImage(output, from: extent) else { return }
+        commit(filled)
     }
 
     // MARK: Markup

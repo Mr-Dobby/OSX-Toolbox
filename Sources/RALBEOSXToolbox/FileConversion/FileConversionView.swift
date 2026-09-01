@@ -7,13 +7,18 @@ struct FileConversionView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("File Conversion Toolbox").font(.title2).bold()
 
-            GroupBox("Image Format Conversion") {
-                HStack {
-                    Picker("Target format", selection: $manager.selectedFormat) {
-                        ForEach(FileConversionManager.ImageFormat.allCases) { Text($0.rawValue).tag($0) }
+            GroupBox("Convert Image to Another Format") {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Picker("Convert to", selection: $manager.selectedFormat) {
+                            ForEach(FileConversionManager.ImageFormat.allCases) { Text($0.rawValue).tag($0) }
+                        }
+                        .frame(width: 200)
+                        Button("Choose Source Image…") { manager.pickImageAndConvert(to: manager.selectedFormat) }
                     }
-                    .frame(width: 200)
-                    Button("Choose Image…") { manager.pickImageAndConvert(to: manager.selectedFormat) }
+                    Text("Converts PNG, JPEG, TIFF, BMP, GIF, HEIC, and other macOS-readable images. The converted copy is saved beside the original; your source image is unchanged.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 .padding(.top, 4)
             }

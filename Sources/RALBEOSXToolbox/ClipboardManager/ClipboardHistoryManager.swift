@@ -35,6 +35,11 @@ final class ClipboardHistoryManager: ObservableObject {
         RunLoop.main.add(timer!, forMode: .common)
     }
 
+    func stop() {
+        timer?.invalidate()
+        timer = nil
+    }
+
     var filteredHistory: [ClipboardEntry] {
         guard !searchText.isEmpty else { return history }
         return history.filter { $0.text.localizedCaseInsensitiveContains(searchText) }
@@ -81,6 +86,11 @@ final class ClipboardHistoryManager: ObservableObject {
 
     func remove(_ entry: ClipboardEntry) {
         history.removeAll { $0.id == entry.id }
+    }
+
+    func removeAll(_ entries: [ClipboardEntry]) {
+        let ids = Set(entries.map { $0.id })
+        history.removeAll { ids.contains($0.id) }
     }
 
     func clearUnpinned() {

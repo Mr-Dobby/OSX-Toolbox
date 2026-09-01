@@ -9,6 +9,7 @@ struct ClipboardManagerView: View {
                 Text("Clipboard Manager").font(.title2).bold()
                 Spacer()
                 Toggle("Recording", isOn: $manager.isEnabled)
+                Button("Remove All") { manager.removeAll(manager.history) }
                 Button("Copy Previous") { manager.copyPrevious() }
                 Button("Clear Unpinned") { manager.clearUnpinned() }
             }

@@ -12,11 +12,16 @@ struct DiskAnalyzerView: View {
                     ForEach(DiskAnalyzerManager.SortOption.allCases) { Text($0.rawValue).tag($0) }
                 }
                 .frame(width: 220)
-                Button("Choose Folder…") { manager.pickFolderAndScan() }
+                Button("Choose Folders…") { manager.pickFolderAndScan() }
                 Button("Scan Home Folder") { manager.scanHomeFolder() }
+                Button("Scan Applications") { manager.scanApplicationsFolder() }
+                Button("Scan Logs & Caches") { manager.scanLogsAndCaches() }
             }
 
-            Text(manager.currentPath).font(.caption).foregroundStyle(.secondary)
+            Text(manager.currentPath)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
 
             if manager.isScanning {
                 ProgressView("Scanning…").frame(maxWidth: .infinity, alignment: .center)

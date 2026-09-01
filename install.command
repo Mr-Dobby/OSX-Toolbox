@@ -159,30 +159,6 @@ echo "=================================="
 echo " Done!"
 echo "=================================="
 echo ""
-echo "IMPORTANT - Permissions:"
-echo "RALBE OSX Toolbox needs Accessibility access (Autoclicker + Caffeine"
-echo "Injection hotkeys), may separately prompt for Input Monitoring access"
-echo "(global shortcuts), Location Services (WiFi SSID trigger), and Full Disk"
-echo "Access (App Cleaner). It will prompt for what it can on first launch; for"
-echo "the rest, open System Settings > Privacy & Security and enable"
-echo "'$DISPLAY_NAME' under Accessibility, Input Monitoring, and Full Disk Access."
-echo ""
-echo "Menu bar: a single '$DISPLAY_NAME' menu bar icon gives access to all three"
-echo "tools (Caffeine Injection, Autoclicker, App Cleaner). Autoclicker also has"
-echo "its own window, opened via the menu bar or by relaunching the app."
-echo ""
-if [ "$SIGN_IDENTITY" = "-" ]; then
-    echo "NOTE: signed ad-hoc this time (fallback), which changes signature on"
-    echo "every rebuild and can reset permissions. If access seems stuck, remove"
-    echo "'$DISPLAY_NAME' from the relevant Privacy & Security list and re-add it."
-else
-    echo "NOTE: signed with the stable local identity '$SIGN_IDENTITY', so"
-    echo "permissions should now persist across rebuilds - no need to remove and"
-    echo "re-grant them each time you update the app."
-fi
-echo ""
-
-open "$FINAL_PATH"
 
 echo "Press Return to close this window..."
 read -r _

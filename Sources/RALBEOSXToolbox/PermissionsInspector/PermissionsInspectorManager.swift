@@ -65,9 +65,9 @@ final class PermissionsInspectorManager: ObservableObject {
 
     static func authDescription(_ value: Int) -> String {
         switch value {
-        case 2: return "Allowed"
-        case 0: return "Denied"
-        default: return "Prompt / Unknown"
+            case 2: return "Allowed"
+            case 0: return "Denied"
+            default: return "Prompt / Unknown"
         }
     }
 

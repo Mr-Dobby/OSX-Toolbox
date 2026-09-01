@@ -131,6 +131,21 @@ final class CaffeineInjectionManager: NSObject, ObservableObject {
         installHotKey()
     }
 
+    /// Releases every resource owned by Caffeine Injection before the app
+    /// exits, including its child `/usr/bin/caffeinate` process.
+    func stop() {
+        heartbeat?.invalidate()
+        heartbeat = nil
+        tickTimer?.invalidate()
+        tickTimer = nil
+        if let monitor = hotKeyMonitor { NSEvent.removeMonitor(monitor) }
+        hotKeyMonitor = nil
+        if let monitor = hotKeyLocalMonitor { NSEvent.removeMonitor(monitor) }
+        hotKeyLocalMonitor = nil
+        engine.stop()
+        didStart = false
+    }
+
     // MARK: Status text
 
     func statusTitle() -> String {

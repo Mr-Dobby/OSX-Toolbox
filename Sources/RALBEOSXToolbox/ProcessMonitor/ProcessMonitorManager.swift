@@ -28,6 +28,11 @@ final class ProcessMonitorManager: ObservableObject {
         RunLoop.main.add(timer!, forMode: .common)
     }
 
+    func stop() {
+        timer?.invalidate()
+        timer = nil
+    }
+
     func refresh() {
         // Off the main thread: `ps` blocks via Process.waitUntilExit(), whose
         // internal run loop pump can reenter SwiftUI's attribute graph and

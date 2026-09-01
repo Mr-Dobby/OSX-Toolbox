@@ -46,6 +46,12 @@ final class WindowManagerService: ObservableObject {
         }
     }
 
+    func stop() {
+        guard isObserving else { return }
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
+        isObserving = false
+    }
+
     @objc nonisolated private func activeAppChanged(_ note: Notification) {
         guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
               app.processIdentifier != ProcessInfo.processInfo.processIdentifier else { return }

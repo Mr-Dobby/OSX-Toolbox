@@ -13,7 +13,7 @@ final class FileConversionManager: ObservableObject {
     static let shared = FileConversionManager()
 
     enum ImageFormat: String, CaseIterable, Identifiable {
-        case png = "PNG", jpeg = "JPEG", tiff = "TIFF", bmp = "BMP", heic = "HEIC"
+        case png = "PNG", jpeg = "JPEG", tiff = "TIFF", bmp = "BMP", gif = "GIF", heic = "HEIC"
         var id: String { rawValue }
         var bitmapFileType: NSBitmapImageRep.FileType? {
             switch self {
@@ -21,6 +21,7 @@ final class FileConversionManager: ObservableObject {
             case .jpeg: return .jpeg
             case .tiff: return .tiff
             case .bmp: return .bmp
+            case .gif: return .gif
             case .heic: return nil
             }
         }

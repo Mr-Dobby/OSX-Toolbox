@@ -8,9 +8,9 @@ struct DiskItem: Identifiable {
     let modificationDate: Date?
 }
 
-/// Scans a chosen folder (non-recursively past the first level, but each
-/// child's total size is computed recursively) and lets the user sort by
-/// size/name/date, reveal in Finder, or move an item to the Trash.
+/// Scans one or more chosen folders (non-recursively past the first level,
+/// but each child's total size is computed recursively) and lets the user
+/// sort by size/name/date, reveal in Finder, or move an item to the Trash.
 /// Duplicate-file detection is NOT implemented in this pass (would need a
 /// full content-hash pass over the whole disk to be reliable).
 @MainActor
@@ -27,34 +27,68 @@ final class DiskAnalyzerManager: ObservableObject {
     @Published var currentPath: String = NSHomeDirectory()
     @Published var sortOption: SortOption = .size
 
+    private var scannedPaths: [String] = [NSHomeDirectory()]
+    private var excludedPaths: Set<String> = []
+
     private init() {}
 
     func pickFolderAndScan() {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
+        panel.allowsMultipleSelection = true
         panel.directoryURL = URL(fileURLWithPath: NSHomeDirectory())
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        scan(path: url.path)
+        guard panel.runModal() == .OK else { return }
+        scan(paths: panel.urls.map(\.path))
     }
 
     func scanHomeFolder() { scan(path: NSHomeDirectory()) }
+    func scanApplicationsFolder() {
+        scan(
+            paths: ["/Applications", NSHomeDirectory() + "/Applications"],
+            excluding: ["/Applications/Utilities"]
+        )
+    }
+
+    func scanLogsAndCaches() {
+        scan(paths: [
+            NSHomeDirectory() + "/Library/Logs",
+            "/Library/Logs",
+            NSHomeDirectory() + "/Library/Caches",
+            "/Library/Caches"
+        ])
+    }
 
     func scan(path: String) {
-        currentPath = path
+        scan(paths: [path])
+    }
+
+    func scan(paths: [String], excluding excludedPaths: [String] = []) {
+        let paths = Array(Set(paths.filter { FileManager.default.fileExists(atPath: $0) })).sorted()
+        guard !paths.isEmpty else {
+            items = []
+            currentPath = "No selected folders were found."
+            return
+        }
+        scannedPaths = paths
+        self.excludedPaths = Set(excludedPaths)
+        currentPath = paths.joined(separator: " • ")
         isScanning = true
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             var results: [DiskItem] = []
-            if let contents = try? FileManager.default.contentsOfDirectory(
-                at: URL(fileURLWithPath: path),
-                includingPropertiesForKeys: [.isDirectoryKey, .contentModificationDateKey],
-                options: [.skipsHiddenFiles]
-            ) {
-                for url in contents {
-                    let isDir = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
-                    let modDate = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
-                    let size = directorySize(url.path)
-                    results.append(DiskItem(url: url, size: size, isDirectory: isDir, modificationDate: modDate))
+            for path in paths {
+                if let contents = try? FileManager.default.contentsOfDirectory(
+                    at: URL(fileURLWithPath: path),
+                    includingPropertiesForKeys: [.isDirectoryKey, .contentModificationDateKey],
+                    options: [.skipsHiddenFiles]
+                ) {
+                    for url in contents {
+                        guard !excludedPaths.contains(url.path) else { continue }
+                        let isDir = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+                        let modDate = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+                        let size = directorySize(url.path)
+                        results.append(DiskItem(url: url, size: size, isDirectory: isDir, modificationDate: modDate))
+                    }
                 }
             }
             Task { @MainActor in
@@ -78,7 +112,12 @@ final class DiskAnalyzerManager: ObservableObject {
 
     func moveToTrash(_ item: DiskItem) {
         NSWorkspace.shared.recycle([item.url]) { [weak self] _, _ in
-            Task { @MainActor in self?.scan(path: self?.currentPath ?? NSHomeDirectory()) }
+            Task { @MainActor in
+                self?.scan(
+                    paths: self?.scannedPaths ?? [NSHomeDirectory()],
+                    excluding: Array(self?.excludedPaths ?? [])
+                )
+            }
         }
     }
 }
