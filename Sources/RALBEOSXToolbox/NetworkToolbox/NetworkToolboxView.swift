@@ -46,6 +46,10 @@ struct NetworkToolboxView: View {
                 HStack {
                     Button("Scan Common UDP Ports") { manager.scanCommonUDPPorts() }
                         .disabled(manager.host.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || manager.isBusy)
+                }
+                HStack {
+                    TextField("UDP port range", text: $manager.udpPortRange)
+                        .frame(width: 180)
                     Button("Scan UDP Range") { manager.scanCustomUDPPortRange() }
                         .disabled(manager.host.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || manager.isBusy)
                 }

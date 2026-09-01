@@ -63,6 +63,7 @@ final class NetworkToolboxManager: ObservableObject {
     @Published var host = ""
     @Published var port = "443"
     @Published var portRange = "1..443"
+    @Published var udpPortRange = "1..443"
     @Published var output = ""
     @Published var isBusy = false
     @Published var localIPs: [String] = []
@@ -158,8 +159,8 @@ final class NetworkToolboxManager: ObservableObject {
     }
 
     func scanCustomUDPPortRange() {
-        guard let ports = Self.validatedPortRange(from: portRange) else {
-            output = "Enter a valid UDP port range such as 1..433. Ranges may contain up to 1,024 ports."
+        guard let ports = Self.validatedPortRange(from: udpPortRange) else {
+            output = "Enter a valid UDP port range such as 1..33. Ranges may contain up to 1,024 ports."
             return
         }
         scanUDPPorts(ports, label: "UDP ports \(ports.first!)..\(ports.last!)")
