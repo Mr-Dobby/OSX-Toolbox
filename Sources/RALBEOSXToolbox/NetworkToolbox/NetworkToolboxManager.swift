@@ -160,7 +160,7 @@ final class NetworkToolboxManager: ObservableObject {
 
     func scanCustomUDPPortRange() {
         guard let ports = Self.validatedPortRange(from: udpPortRange) else {
-            output = "Enter a valid UDP port range such as 1..33. Ranges may contain up to 1,024 ports."
+            output = "Enter a valid UDP port range such as 1..433. Ranges may contain up to 1,024 ports."
             return
         }
         scanUDPPorts(ports, label: "UDP ports \(ports.first!)..\(ports.last!)")
